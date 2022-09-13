@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.ausom.drooler.home.HomeScreen
 import com.ausom.drooler.ui.theme.DroolerTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,22 +23,17 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    HomeScreen()
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     DroolerTheme {
-        Greeting("Android")
+        HomeScreen()
     }
 }
