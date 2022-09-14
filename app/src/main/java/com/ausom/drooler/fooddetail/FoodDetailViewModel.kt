@@ -1,7 +1,5 @@
 package com.ausom.drooler.fooddetail
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ausom.drooler.data.FoodRepository
@@ -9,6 +7,8 @@ import com.ausom.drooler.di.PostExecutionThread
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,8 +18,8 @@ class FoodDetailViewModel @Inject constructor(
     private val repository: FoodRepository
 ): ViewModel() {
 
-    private val _state = mutableStateOf(FoodDetailState())
-    val state: State<FoodDetailState>
+    private val _state = MutableStateFlow(FoodDetailState())
+    val state: StateFlow<FoodDetailState>
         get() = _state
 
     private val _effect = MutableSharedFlow<FoodDetailEffect>()
@@ -40,14 +40,26 @@ class FoodDetailViewModel @Inject constructor(
         }
     }
 
-    fun nextFood() {
-        viewModelScope.launch(postExecutionThread.default) {
-            val foodDetail = _state.value.foodDetail
-            val effect = when {
-                foodDetail.isLast || foodDetail.id.toInt() == 0 -> FoodDetailEffect.Close
-                else -> FoodDetailEffect.GoToFoodDetail(foodDetail.id.toInt() + 1)
-            }
-            _effect.emit(effect)
+    fun drool() {
+        viewModelScope.launch(postExecutionThread.io) {
+            repository.addDroolCount(1)
+            nextFood()
         }
+    }
+
+    fun nope() {
+        viewModelScope.launch(postExecutionThread.io) {
+            nextFood()
+        }
+    }
+
+    private suspend fun nextFood() {
+        val foodDetail = _state.value.foodDetail
+        val effect = when {
+            foodDetail.isLast -> FoodDetailEffect.Close
+            else -> FoodDetailEffect.GoToFoodDetail(foodDetail.id.toInt() + 1)
+        }
+
+        _effect.emit(effect)
     }
 }

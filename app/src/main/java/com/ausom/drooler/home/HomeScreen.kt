@@ -4,14 +4,9 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.ShoppingCart
-import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,6 +18,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -35,11 +31,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ausom.drooler.NavDirection
 import com.ausom.drooler.R
+import com.ausom.drooler.common.Loader
+import com.ausom.drooler.common.getDrawable
 import com.ausom.drooler.data.FoodEntity
 import com.ausom.drooler.ui.theme.Accent
 
 data class HomeState(
-    val droolCount: Int = 0,
+    val droolCount: String = "0",
     val isLoading: Boolean = false,
     val featuredList: List<FoodEntity> = emptyList(),
     val exploreList: List<FoodEntity> = emptyList(),
@@ -50,7 +48,7 @@ data class HomeState(
 fun HomeScreen(navController: NavController) {
 
     val viewModel = hiltViewModel<HomeViewModel>()
-    val state = viewModel.state.value
+    val state by viewModel.state.collectAsState(initial = HomeState())
 
     val configuration = LocalConfiguration.current
     val coverPhoto = configuration.screenHeightDp.dp.times(0.5f)
@@ -60,6 +58,7 @@ fun HomeScreen(navController: NavController) {
     var previousOffset by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
+        viewModel.loadDroolCount()
         viewModel.loadFoodList()
     }
 
@@ -75,7 +74,7 @@ fun HomeScreen(navController: NavController) {
             Image(
                 painter = painterResource(id = R.drawable.pizza),
                 contentDescription = null,
-                alignment= Alignment.BottomCenter,
+                alignment = Alignment.BottomCenter,
                 contentScale = ContentScale.FillWidth,
                 modifier = Modifier
                     .height(coverPhoto)
@@ -88,10 +87,12 @@ fun HomeScreen(navController: NavController) {
             )
         }
         stickyHeader {
-            Canvas(modifier = Modifier
-                .fillMaxWidth()
-                .height(20.dp)
-                .clipToBounds()) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)
+                    .clipToBounds()
+            ) {
                 drawArc(
                     color = Color.White,
                     -180f,
@@ -122,14 +123,17 @@ fun HomeScreen(navController: NavController) {
                             .padding(vertical = 4.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.FavoriteBorder,
-                            contentDescription = null,
-                            tint = Color.White
+                        Text(
+                            text = state.droolCount,
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Drools",
+                            text = stringResource(id = R.string.home_droolCountTitle),
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
@@ -142,47 +146,7 @@ fun HomeScreen(navController: NavController) {
             }
         }
         item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = buildAnnotatedString {
-                        append(
-                            AnnotatedString(
-                                text = "The Fastest in Making \nYou "
-                            )
-                        )
-                        append(
-                            AnnotatedString(
-                                text = "Drool",
-                                spanStyle = SpanStyle(color = Accent)
-                            )
-                        )
-                    },
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 32.sp,
-                    lineHeight = 40.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = "Our job is to fill your tummy with delicious \nfood cravings fast and effectively.",
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Thin,
-                    lineHeight = 24.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-            }
+            HeaderItem()
         }
         item {
             Column(
@@ -190,57 +154,22 @@ fun HomeScreen(navController: NavController) {
                     .fillMaxWidth()
                     .background(Color.White)
             ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = "Popular Now",
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = "Here are our yummiest foods you wont get to eat.",
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Thin,
-                    lineHeight = 24.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                LazyRow {
-                    itemsIndexed(
-                        key = { index, _ -> index },
-                        items = state.featuredList) { index, item ->
-                        if(index == 0) Spacer(modifier = Modifier.width(20.dp))
-
-                        Card(
-                            modifier = Modifier
-                                .width(150.dp)
-                                .height(200.dp)
-                                .clickable {
-                                    navController.navigate(NavDirection.FoodDetail.with(item.id))
-                                },
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = 10.dp
-                            ),
-                        ) {
-                            Image(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                painter = painterResource(id = R.drawable.burger),
-                                contentDescription = null)
-                            Text(
-                                modifier = Modifier
-                                    .background(Color.White)
-                                    .fillMaxWidth()
-                                    .padding(8.dp),
-                                text = item.name
+                SectionItem(
+                    title = stringResource(id = R.string.home_sectionHeader1),
+                    subtitle = stringResource(id = R.string.home_sectionHeader1Subtitle))
+                Loader(state.isLoading) {
+                    LazyRow {
+                        itemsIndexed(
+                            key = { index, _ -> index },
+                            items = state.featuredList
+                        ) { index, item ->
+                            if (index == 0) Spacer(modifier = Modifier.width(20.dp))
+                            FeaturedItem(
+                                id = item.id,
+                                name = item.name,
+                                onClick = { navController.navigate(NavDirection.FoodDetail.with(item.id)) }
                             )
                         }
-                        Spacer(modifier = Modifier.width(20.dp))
                     }
                 }
                 Spacer(modifier = Modifier.height(32.dp))
@@ -252,54 +181,154 @@ fun HomeScreen(navController: NavController) {
                     .fillMaxWidth()
                     .background(Color.White)
             ) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = "Explore More",
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 20.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    text = "Still want to drool more? check these out!",
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Thin,
-                    lineHeight = 24.sp,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                SectionItem(
+                    title = stringResource(id = R.string.home_sectionHeader2),
+                    subtitle = stringResource(id = R.string.home_sectionHeader2Subtitle))
             }
         }
-        items(
-            key = { it.id },
-            items = state.exploreList) { item ->
-            Column(
-                modifier = Modifier
-                    .background(Color.White)
-                    .padding(horizontal = 24.dp)
-            ) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        navController.navigate(NavDirection.FoodDetail.with(item.id))
-                    },
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 10.dp
-                    ),
+
+        if(state.isLoading) {
+            item {
+                Column(
+                    modifier = Modifier.background(Color.White)
                 ) {
-                    Image(painter = painterResource(id = R.drawable.burger), contentDescription = null)
-                    Text(
-                        modifier = Modifier
-                            .background(Color.White)
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        text = item.name
-                    )
+                    Spacer(modifier = Modifier.height(100.dp))
+                    Loader(state.isLoading)
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
-                Spacer(modifier = Modifier.height(20.dp))
+            }
+        } else {
+            items(
+                key = { it.id },
+                items = state.exploreList
+            ) { item ->
+                ExploreItem(
+                    id = item.id,
+                    name = item.name,
+                    onClick = { navController.navigate(NavDirection.FoodDetail.with(item.id)) }
+                )
             }
         }
+    }
+}
+
+@Composable
+fun HeaderItem() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            text = buildAnnotatedString {
+                append(
+                    AnnotatedString(
+                        text = stringResource(id = R.string.home_titleLine1)
+                    )
+                )
+                append(
+                    AnnotatedString(
+                        text = stringResource(id = R.string.home_titleLine2),
+                        spanStyle = SpanStyle(color = Accent)
+                    )
+                )
+            },
+            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.Bold,
+            fontSize = 32.sp,
+            lineHeight = 40.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            text = stringResource(id = R.string.home_description),
+            fontFamily = FontFamily.Serif,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Thin,
+            lineHeight = 24.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+fun SectionItem(title: String, subtitle: String) {
+    Text(
+        modifier = Modifier.padding(horizontal = 24.dp),
+        text = title,
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        textAlign = TextAlign.Center
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        modifier = Modifier.padding(horizontal = 24.dp),
+        text = subtitle,
+        fontFamily = FontFamily.Serif,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Thin,
+        lineHeight = 24.sp,
+        textAlign = TextAlign.Center
+    )
+    Spacer(modifier = Modifier.height(16.dp))
+}
+
+@Composable
+fun FeaturedItem(id: String, name: String, onClick: () -> Unit) {
+    val modifier = Modifier.fillMaxWidth()
+    Card(
+        modifier = Modifier
+            .width(150.dp)
+            .height(200.dp)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 10.dp
+        ),
+    ) {
+        Image(
+            modifier = modifier.weight(1f),
+            painter = painterResource(id = getDrawable(id = id)),
+            contentScale = ContentScale.Crop,
+            contentDescription = null
+        )
+        Text(
+            modifier = modifier.padding(8.dp),
+            text = name
+        )
+    }
+    Spacer(modifier = Modifier.width(20.dp))
+}
+
+@Composable
+fun ExploreItem(id: String, name: String, onClick: () -> Unit) {
+    val modifier = Modifier.fillMaxWidth()
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .padding(horizontal = 24.dp)
+    ) {
+        Card(
+            modifier = modifier.clickable(onClick = onClick),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 10.dp
+            ),
+        ) {
+            Image(
+                painter = painterResource(id = getDrawable(id)),
+                contentDescription = null
+            )
+            Text(
+                modifier = modifier.padding(8.dp),
+                text = name
+            )
+        }
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }

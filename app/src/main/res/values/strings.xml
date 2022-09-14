@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Drooler</string>
+    <string name="home_droolCountTitle">Drools</string>
+    <string name="home_titleLine1">The Fastest in Making \nYou\u0020</string>
+    <string name="home_titleLine2">Drool</string>
+    <string name="home_description">Our job is to fill your tummy with delicious food cravings fast and effectively.</string>
+    <string name="home_sectionHeader1">Popular Now</string>
+    <string name="home_sectionHeader1Subtitle">Here are our yummiest foods you wont get to eat.</string>
+    <string name="home_sectionHeader2">Explore More</string>
+    <string name="home_sectionHeader2Subtitle">Still want to drool more? check these out!</string>
 </resources>

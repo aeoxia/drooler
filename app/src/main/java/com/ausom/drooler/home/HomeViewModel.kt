@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.ausom.drooler.data.FoodRepository
 import com.ausom.drooler.di.PostExecutionThread
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,9 +17,18 @@ class HomeViewModel @Inject constructor(
     private val postExecutionThread: PostExecutionThread,
     private val repository: FoodRepository
 ): ViewModel() {
-    private val _state = mutableStateOf(HomeState())
-    val state: State<HomeState>
+    private val _state = MutableStateFlow(HomeState())
+    val state: StateFlow<HomeState>
         get() = _state
+
+    fun loadDroolCount() {
+        viewModelScope.launch(postExecutionThread.io) {
+            val droolCount = repository.getDroolCount()
+            _state.value = _state.value.copy(
+                droolCount = droolCount.toString()
+            )
+        }
+    }
 
     fun loadFoodList() {
         viewModelScope.launch(postExecutionThread.io) {
