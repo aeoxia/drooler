@@ -47,8 +47,8 @@ data class HomeState(
 @Composable
 fun HomeScreen(navController: NavController) {
 
-    val viewModel = hiltViewModel<HomeViewModel>()
-    val state by viewModel.state.collectAsState(initial = HomeState())
+    val store = hiltViewModel<HomeStore>()
+    val state by store.state.collectAsState(initial = HomeState())
 
     val configuration = LocalConfiguration.current
     val coverPhoto = configuration.screenHeightDp.dp.times(0.5f)
@@ -58,8 +58,7 @@ fun HomeScreen(navController: NavController) {
     var previousOffset by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadDroolCount()
-        viewModel.loadFoodList()
+        store.send(listOf(HomeAction.LoadDroolCount, HomeAction.LoadFoodList))
     }
 
     LazyColumn(
